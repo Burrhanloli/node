@@ -1,0 +1,6 @@
+#node_modules
+*node_modules/*
+*Homeworks/*
+OS junk files
+[Tt]humbs.db
+*.DS_Store
