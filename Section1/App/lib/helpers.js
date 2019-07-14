@@ -55,5 +55,28 @@ helpers.decrypt = function(password) {
   decipheredPassword += helpers.decipher.final("utf-8");
   return decipheredPassword;
 };
+
+helpers.createRandomString = function(strLength) {
+  strLength = typeof strLength == "number" && strLength > 0 ? strLength : false;
+
+  if (strLength) {
+    //Define all the possible char for String
+    const possibleCharacters = "abcdefghijklmnopqrstuvwxyz0123456789";
+    //Start the string.
+    var str = "";
+    for (i = 1; i <= strLength; i++) {
+      //Get random number from possibleCharacters String.
+      var randomCharacter = possibleCharacters.charAt(
+        Math.floor(Math.random() * possibleCharacters.length)
+      );
+      //Append the char to str.
+      str += randomCharacter;
+    }
+    //Return the final str.
+    return str;
+  } else {
+    return false;
+  }
+};
 // Export the module
 module.exports = helpers;
