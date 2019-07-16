@@ -1,4 +1,4 @@
-// Pro=imary File for the API
+// Primary File for the API
 
 // Dependencies
 const http = require("http");
