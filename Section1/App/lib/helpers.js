@@ -4,11 +4,13 @@
  */
 
 // Dependencies
-var config = require("./config");
-var crypto = require("crypto");
+const config = require("./config");
+const crypto = require("crypto");
+const https = require("https");
+const queryString = require("querystring");
 
 // Container for all the helpers
-var helpers = {};
+const helpers = {};
 
 // Parse a JSON string to an object in all cases, without throwing
 helpers.parseJsonToObject = function(str) {
@@ -76,6 +78,67 @@ helpers.createRandomString = function(strLength) {
     return str;
   } else {
     return false;
+  }
+};
+
+helpers.sendTwilioSms = (phoneNo, message, callback) => {
+  phoneNo =
+    typeof phoneNo == "string" && phoneNo.trim().length == 10
+      ? phoneNo.trim()
+      : false;
+
+  message =
+    typeof message == "string" &&
+    message.trim().length > 0 &&
+    message.trim().length <= 1600
+      ? message.trim()
+      : false;
+
+  if (phoneNo && message) {
+    // Configure the request payload
+
+    const payload = {
+      From: config.twilio.fromPhone,
+      To: +1 + phoneNo,
+      Body: message
+    };
+    //Stringify.
+    const stringPayload = queryString.stringify(payload);
+
+    const requestDetails = {
+      protocol: "https:",
+      hostname: "api.twilio.com",
+      method: "POST",
+      path:
+        "/2010-04-01/Accounts/" + config.twilio.accountSid + "/Messages.json",
+      auth: config.twilio.accountSid + ":" + config.twilio.authToken,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Length": Buffer.byteLength(stringPayload)
+      }
+    };
+
+    //Instantiate the request obj
+    const req = https.request(requestDetails, res => {
+      const status = res.statusCode;
+
+      if (status == 200 || status == 201) {
+        callback(false);
+      } else {
+        callback(status, { Error: "Status code returned was" + status });
+      }
+    });
+
+    //Bind to error
+    req.on("error", e => {
+      callback(e);
+    });
+
+    req.write(stringPayload);
+
+    req.end();
+  } else {
+    callback(500, { Error: "Given parameters where missing or invalid." });
   }
 };
 // Export the module
