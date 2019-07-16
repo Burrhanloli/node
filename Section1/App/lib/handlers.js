@@ -40,22 +40,22 @@ handlers._users = {};
 //Users POST
 //Required data - firstName, lastname, phone, password, tosAgreement.
 //Optional data - none.
-handlers._users.post = function(data, callback) {
-  //Check if required fields are present
+handlers._users.post = (data, callback) => {
+  // Check that all required fields are filled out
   var firstName =
     typeof data.payload.firstName == "string" &&
     data.payload.firstName.trim().length > 0
-      ? data.payload.firstName
+      ? data.payload.firstName.trim()
       : false;
   var lastName =
     typeof data.payload.lastName == "string" &&
     data.payload.lastName.trim().length > 0
-      ? data.payload.lastName
+      ? data.payload.lastName.trim()
       : false;
   var phone =
     typeof data.payload.phone == "string" &&
     data.payload.phone.trim().length == 10
-      ? data.payload.phone
+      ? data.payload.phone.trim()
       : false;
   var password =
     typeof data.payload.password == "string" &&
@@ -69,15 +69,16 @@ handlers._users.post = function(data, callback) {
       : false;
 
   if (firstName && lastName && phone && password && tosAgreement) {
-    //user does Not Exist
-    _data.read("users", phone, function(err, data) {
+    // Make sure the user doesnt already exist
+    _data.read("users", phone, (err, data) => {
       if (err) {
-        //Hash the password
+        // Hash the password
         var encryptedPassword = helpers.encrypt(password);
         var hashedPassword = helpers.hash(password);
-        //Create user obj
+
+        // Create the user object
         if (hashedPassword) {
-          var userObj = {
+          var userObject = {
             firstName: firstName,
             lastName: lastName,
             phone: phone,
@@ -85,21 +86,23 @@ handlers._users.post = function(data, callback) {
             hashedpassword: hashedPassword,
             tosagreement: true
           };
-          _data.create("users", phone, userObj, function(err) {
+
+          // Store the user
+          _data.create("users", phone, userObject, err => {
             if (!err) {
               callback(200, { Success: "User successfully created." });
             } else {
-              console.error(err);
-              callback(500, { Error: "Could not create the new user." });
+              callback(500, { Error: "Could not create the new user" });
             }
           });
         } else {
-          callback(400, {
-            Error: "A user with that phone number already exists."
-          });
+          callback(500, { Error: "Could not hash the user's password." });
         }
       } else {
-        callback(500, { Error: "Could not hash user's password." });
+        // User alread exists
+        callback(400, {
+          Error: "A user with that phone number already exists"
+        });
       }
     });
   } else {
